@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment files
+# .env
+# .env.local
+# .env.development
+# .env.production
+
+#test files
+tests/
+
+# Build
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Add this line
+uploads/
+
+.env
+# IDE
+.vscode/
+.idea/
+*.json

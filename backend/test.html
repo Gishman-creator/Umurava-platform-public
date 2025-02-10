@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body { 
+            padding: 20px; 
+            font-family: Arial; 
+            max-width: 800px; 
+            margin: auto; 
+        }
+        .card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .response {
+            background: #f5f5f5;
+            padding: 10px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) { 
+            background: #0056b3; 
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .invalid {
+            border-color: red;
+        }
+        #imageGallery img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            margin: 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Umurava API Test</h1>
+
+    <div class="card">
+        <h3>1. Login</h3>
+        <input type="email" id="loginEmail" placeholder="Email" required
+               pattern="[^@]+@[^@]+\.[a-zA-Z]{2,}"
+               onchange="validateEmail(this)">
+        <div id="loginEmailError" class="error"></div>
+        <input type="password" id="loginPassword" placeholder="Password" required
+               minlength="8" onchange="validatePassword(this)">
+        <div id="loginPasswordError" class="error"></div>
+        <button onclick="login()" id="loginBtn">Login</button>
+        <div id="loginResponse" class="response"></div>
+    </div>
+
+    <div class="card">
+        <h3>2. Register</h3>
+        <input type="file" 
+               id="registerImage" 
+               accept="image/*"
+               onchange="validateFile(this, 'registerImageError')"
+        >
+        <div id="registerImageError" class="error"></div>
+        <input type="text" id="registerName" placeholder="Full Name" required
+               minlength="2" maxlength="50" onchange="validateField(this, 2, 50)">
+        <div id="registerNameError" class="error"></div>
+        <input type="email" id="registerEmail" placeholder="Email" required
+               pattern="[^@]+@[^@]+\.[a-zA-Z]{2,}"
+               onchange="validateEmail(this)">
+        <div id="registerEmailError" class="error"></div>
+        <input type="tel" id="registerPhone" placeholder="Phone Number (e.g., 0784123456)" required
+               pattern="[0-9]{9,10}" 
+               onchange="validatePhone(this)">
+        <div id="registerPhoneError" class="error"></div>
+        <input type="password" id="registerPassword" placeholder="Password" required
+               minlength="8" onchange="validatePassword(this)">
+        <div id="registerPasswordError" class="error"></div>
+        <div class="form-group">
+            <label for="specialty">Specialty:</label>
+            <input type="text" id="specialty" name="specialty" class="form-control" required>
+        </div>
+        <button onclick="register()" id="registerBtn">Register</button>
+        <div id="registerResponse" class="response"></div>
+    </div>
+           
+    <div class="card">
+        <h3>2. Challenge Management</h3>
+        <input type="text" id="title" placeholder="Challenge Title" required
+               minlength="10" maxlength="200" onchange="validateField(this, 10, 200)">
+        <div id="titleError" class="error"></div>
+        <textarea id="brief" placeholder="Brief Description" required
+                  minlength="20" maxlength="500" onchange="validateField(this, 20, 500)"></textarea>
+        <div id="briefError" class="error"></div>
+        <textarea id="description" placeholder="Full Project Description" required
+                  minlength="50" maxlength="5000" onchange="validateField(this, 50, 5000)"></textarea>
+        <div id="descriptionError" class="error"></div>
+        <input type="email" id="contact_email" placeholder="Contact Email" required
+               pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+               onchange="validateEmail(this)">
+        <div id="contactEmailError" class="error"></div>
+        <input type="number" id="prize" placeholder="Prize Amount (USD)" required
+               min="100" max="1000000" onchange="validateNumber(this, 100, 1000000)">
+        <div id="prizeError" class="error"></div>
+        <input type="date" id="deadline" required onchange="validateDate(this)">
+        <div id="deadlineError" class="error"></div>
+        <button onclick="createChallenge()" id="createChallengeBtn" disabled>Create Challenge</button>
+        <button onclick="listChallenges()">List Challenges</button>
+        <div id="challengeResponse" class="response"></div>
+    </div>
+
+    <div class="card">
+        <h3>3. File Upload</h3>
+        <input type="file" id="file" accept="image/*" onchange="validateFile(this)">
+        <div id="fileError" class="error"></div>
+        <button onclick="uploadFile()" id="uploadBtn" disabled>Upload</button>
+        <button onclick="listFiles()">List Files</button>
+        <div id="uploadResponse" class="response"></div>
+        <div id="imageGallery"></div>
+    </div>
+
+    <script>
+        const PORT = 3000;  // Default port
+        const API_URL = `http://localhost:${PORT}/api`;
+        let token = localStorage.getItem('token');
+
+        // Validation functions
+        function validateEmail(input) {
+            const errorDiv = document.getElementById(`${input.id}Error`);
+            if (!input.value.match(input.pattern)) {
+                input.classList.add('invalid');
+                errorDiv.textContent = 'Please enter a valid email address';
+                return false;
+            }
+            input.classList.remove('invalid');
+            errorDiv.textContent = '';
+            return true;
+        }
+
+        function validatePassword(input) {
+            const errorDiv = document.getElementById(`${input.id}Error`);
+            if (input.value.length < 8) {
+                input.classList.add('invalid');
+                errorDiv.textContent = 'Password must be at least 8 characters';
+                return false;
+            }
+            if (!/[A-Z]/.test(input.value)) {
+                input.classList.add('invalid');
+                errorDiv.textContent = 'Password must contain at least one uppercase letter';
+                return false;
+            }
+            if (!/[0-9]/.test(input.value)) {
+                input.classList.add('invalid');
+                errorDiv.textContent = 'Password must contain at least one number';
+                return false;
+            }
+            input.classList.remove('invalid');
+            errorDiv.textContent = '';
+            return true;
+        }
+
+        function validateField(input, min, max) {
+            const errorDiv = document.getElementById(`${input.id}Error`);
+            if (input.value.length < min || input.value.length > max) {
+                input.classList.add('invalid');
+                errorDiv.textContent = `Length must be between ${min} and ${max} characters`;
+                return false;
+            }
+            input.classList.remove('invalid');
+            errorDiv.textContent = '';
+            return true;
+        }
+
+        function validateNumber(input, min, max) {
+            const errorDiv = document.getElementById(`${input.id}Error`);
+            const value = Number(input.value);
+            if (isNaN(value) || value < min || value > max) {
+                input.classList.add('invalid');
+                errorDiv.textContent = `Value must be between ${min} and ${max}`;
+                return false;
+            }
+            input.classList.remove('invalid');
+            errorDiv.textContent = '';
+            return true;
+        }
+
+        function validateDate(input) {
+            const errorDiv = document.getElementById(`${input.id}Error`);
+            const selectedDate = new Date(input.value);
+            const today = new Date();
+            if (selectedDate <= today) {
+                input.classList.add('invalid');
+                errorDiv.textContent = 'Deadline must be in the future';
+                return false;
+            }
+            input.classList.remove('invalid');
+            errorDiv.textContent = '';
+            return true;
+        }
+
+        function validateFile(input, errorId) {
+            const errorDiv = document.getElementById(errorId);
+            const uploadBtn = document.getElementById('registerBtn');
+            
+            if (!input.files || !input.files[0]) {
+                errorDiv.textContent = 'Please select a file';
+                uploadBtn.disabled = true;
+                return false;
+            }
+
+            const file = input.files[0];
+            if (!file.type.startsWith('image/')) {
+                errorDiv.textContent = 'Please select an image file';
+                uploadBtn.disabled = true;
+                return false;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                errorDiv.textContent = 'File size must be less than 5MB';
+                uploadBtn.disabled = true;
+                return false;
+            }
+
+            errorDiv.textContent = '';
+            uploadBtn.disabled = false;
+            return true;
+        }
+
+        function validatePhone(input) {
+            const errorDiv = document.getElementById(`${input.id}Error`);
+            const phoneRegex = /^[0-9]{9,10}$/;  // Allow 9 or 10 digits
+            
+            if (!phoneRegex.test(input.value)) {
+                input.classList.add('invalid');
+                errorDiv.textContent = 'Please enter a valid phone number (9-10 digits)';
+                return false;
+            }
+            input.classList.remove('invalid');
+            errorDiv.textContent = '';
+            return true;
+        }
+
+        // Check if all challenge fields are valid
+        function validateChallengeForm() {
+            const isValid = 
+                validateField(document.getElementById('title'), 10, 200) &&
+                validateField(document.getElementById('brief'), 20, 500) &&
+                validateField(document.getElementById('description'), 50, 5000) &&
+                validateEmail(document.getElementById('contact_email')) &&
+                validateNumber(document.getElementById('prize'), 100, 1000000) &&
+                validateDate(document.getElementById('deadline'));
+            
+            document.getElementById('createChallengeBtn').disabled = !isValid;
+            return isValid;
+        }
+
+        // Add event listeners to challenge form fields
+        ['title', 'brief', 'description', 'contact_email', 'prize', 'deadline'].forEach(id => {
+            const element = document.getElementById(id);
+            element.addEventListener('input', () => validateChallengeForm());
+        });
+
+        // Add connection check
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (!response.ok) throw new Error('API is not responding');
+                document.getElementById('loginResponse').textContent = 'Connected to API';
+            } catch (error) {
+                document.getElementById('loginResponse').textContent = 
+                    `Cannot connect to API at ${API_URL}. Please ensure the server is running.`;
+            }
+        }
+
+        // Update makeRequest function to handle file uploads better
+        async function makeRequest(endpoint, method = 'GET', body = null, isFormData = false) {
+            try {
+                const headers = new Headers();
+                if (token) headers.append('Authorization', `Bearer ${token}`);
+                if (!isFormData) headers.append('Content-Type', 'application/json');
+
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method,
+                    headers,
+                    body: isFormData ? body : (body ? JSON.stringify(body) : null)
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error(data.message || 'Invalid credentials');
+                    }
+                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                }
+
+                return data;
+            } catch (error) {
+                console.error('Request error:', error); // Log request errors
+                throw error;
+            }
+        }
+
+        async function login() {
+            try {
+                if (!validateEmail(document.getElementById('loginEmail')) ||
+                    !validatePassword(document.getElementById('loginPassword'))) {
+                    throw new Error('Please check all fields are valid');
+                }
+
+                const credentials = {
+                    email: document.getElementById('loginEmail').value.trim().toLowerCase(),
+                    password: document.getElementById('loginPassword').value
+                };
+
+                console.log('Attempting login with:', { email: credentials.email }); // Log attempt
+
+                const data = await makeRequest('/users/login', 'POST', credentials);
+                
+                token = data.token;
+                localStorage.setItem('token', token);
+                document.getElementById('loginResponse').textContent = 
+                    `Login successful! Token: ${token.slice(0, 20)}...`;
+
+                // Clear form
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+            } catch (error) {
+                console.error('Login error:', error); // Log error details
+                document.getElementById('loginResponse').textContent = 
+                    `Login failed: ${error.message}`;
+            }
+        }
+
+        async function register() {
+            try {
+                if (!validateField(document.getElementById('registerName'), 2, 50) ||
+                    !validateEmail(document.getElementById('registerEmail')) ||
+                    !validatePhone(document.getElementById('registerPhone')) ||
+                    !validatePassword(document.getElementById('registerPassword'))) {
+                    throw new Error('Please check all fields are valid');
+                }
+
+                const formData = new FormData();
+                formData.append('name', document.getElementById('registerName').value.trim());
+                formData.append('email', document.getElementById('registerEmail').value.trim().toLowerCase());
+                formData.append('number', document.getElementById('registerPhone').value.trim());
+                formData.append('password', document.getElementById('registerPassword').value);
+                formData.append('role', 'user');
+                formData.append('specialty', document.getElementById('specialty').value);
+
+                // Add image if selected
+                const imageFile = document.getElementById('registerImage').files[0];
+                if (imageFile) {
+                    formData.append('profileImage', imageFile);
+                }
+
+                const data = await makeRequest('/users/register', 'POST', formData, true);
+                
+                document.getElementById('registerResponse').textContent = 
+                    'Registration successful! Please check your email to verify your account.';
+                    
+                // Clear form
+                document.getElementById('registerName').value = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPhone').value = '';
+                document.getElementById('registerPassword').value = '';
+            } catch (error) {
+                document.getElementById('registerResponse').textContent = 
+                    `Registration failed: ${error.message}`;
+            }
+        }
+
+        async function createChallenge() {
+            try {
+                const data = await makeRequest('/challenges', 'POST', {
+                    Title: document.getElementById('title').value,
+                    Brief: document.getElementById('brief').value,
+                    Project_Discription: document.getElementById('description').value,
+                    contact_email: document.getElementById('contact_email').value,
+                    Money_Prize: parseInt(document.getElementById('prize').value),
+                    Deadline: new Date(document.getElementById('deadline').value).toISOString(),
+                    status: 'open'
+                });
+                document.getElementById('challengeResponse').textContent = 
+                    `Challenge created!\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('challengeResponse').textContent = 
+                    `Failed to create challenge: ${error.message}`;
+            }
+        }
+
+        async function listChallenges() {
+            try {
+                const data = await makeRequest('/challenges');
+                document.getElementById('challengeResponse').textContent = 
+                    JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('challengeResponse').textContent = 
+                    `Failed to list challenges: ${error.message}`;
+            }
+        }
+
+        async function uploadFile() {
+            try {
+                const file = document.getElementById('file').files[0];
+                if (!file) throw new Error('Please select a file');
+
+                const formData = new FormData();
+                formData.append('file', file);  // Changed to 'file' to match multer config
+
+                const data = await makeRequest('/images/upload', 'POST', formData, true);
+                document.getElementById('uploadResponse').textContent = 
+                    `Upload successful!\n${JSON.stringify(data, null, 2)}`;
+                listFiles();
+            } catch (error) {
+                document.getElementById('uploadResponse').textContent = 
+                    `Upload failed: ${error.message}`;
+            }
+        }
+
+        async function listFiles() {
+            try {
+                const data = await makeRequest('/images');  // Changed from '/images/user'
+                const gallery = document.getElementById('imageGallery');
+                gallery.innerHTML = '';
+                
+                if (data && Array.isArray(data)) {  // Updated to handle array response
+                    data.forEach(image => {
+                        const img = document.createElement('img');
+                        img.src = image.url || image.path;  // Handle both url and path
+                        img.title = image.filename;
+                        gallery.appendChild(img);
+                    });
+                    document.getElementById('uploadResponse').textContent = 
+                        `Found ${data.length} images`;
+                }
+            } catch (error) {
+                document.getElementById('uploadResponse').textContent = 
+                    `Failed to list files: ${error.message}`;
+            }
+        }
+
+        // Check token on load
+        if (token) {
+            document.getElementById('loginResponse').textContent = 
+                `Using existing token: ${token.slice(0, 20)}...`;
+        }
+
+        // Call checkConnection when page loads
+        window.addEventListener('load', checkConnection);
+    </script>
+</body>
+</html>
