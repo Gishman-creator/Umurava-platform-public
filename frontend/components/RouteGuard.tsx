@@ -28,8 +28,8 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
     const role = localStorage.getItem("role");
 
     // Check if the route needs authentication
-    const isTalentRoute = pathname.startsWith("/talent/");
-    const isAdminRoute = pathname.startsWith("/admin/");
+    const isTalentRoute = pathname?.startsWith("/talent/");
+    const isAdminRoute = pathname?.startsWith("/admin/");
 
     if (!isTalentRoute && !isAdminRoute) {
       setIsAuthorized(true); // Allow public routes

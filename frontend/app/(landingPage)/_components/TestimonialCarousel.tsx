@@ -1,8 +1,6 @@
 "use client"
 import * as React from "react"
 import Autoplay from "embla-carousel-autoplay"
-import Video from "next-video"
-import UmuravaVideo from "@/videos/Tour of Umurava HUB A Workspace of Digital Talents and Companies720p.mp4"
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import {
@@ -54,10 +52,16 @@ export function TestimonialCarouselComponent() {
                             <div className="w-fit">
                                 <Card>
                                     <CardHeader className="">
-                                        <Video
-                                            src={UmuravaVideo}
-                                            className="rounded-lg overflow-hidden"
-                                        />
+                                        <video
+                                            controls
+                                            className="rounded-lg overflow-hidden w-full"
+                                        >
+                                            <source
+                                                src="https://bouwipdrtccvvmdiyzgr.supabase.co/storage/v1/object/public/umurava_image/Video/Tour%20of%20Umurava%20HUB%20A%20Workspace%20of%20Digital%20Talents%20and%20Companies%20-%20Umurava%20(720p,%20h264).mp4"
+                                                type="video/mp4"
+                                            />
+                                            Your browser does not support the video tag.
+                                        </video>
                                     </CardHeader>
                                     <CardContent className="flex space-x-2">
                                         <Image

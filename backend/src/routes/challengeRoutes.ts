@@ -7,16 +7,15 @@ const router = Router();
 const challengeController = new ChallengeController();
 
 // Public routes
-router.get('/:limit?', challengeController.getAll);
+router.get('/', challengeController.getAll);
+router.get('/:limit', challengeController.getAll);
 router.get('/id/:id/:creator_id?', challengeController.getById);
 router.get('/stats', challengeController.getChallengeStats);
 router.get('/search', challengeController.searchChallenges);
 
 // Protected routes
 router.use(protect);
-router.post('/', uploadImage.single('challengeImage'), challengeController.create);  // Moved here
-
-// User routes
+router.post('/', uploadImage.single('challengeImage'), challengeController.create);
 router.post('/:id/participate', challengeController.addParticipant);
 router.get('/user/:userId', challengeController.getUserChallenges);
 

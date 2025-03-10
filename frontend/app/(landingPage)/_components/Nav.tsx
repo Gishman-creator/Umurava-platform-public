@@ -16,7 +16,7 @@ const Nav = ({ children }: { children: React.ReactNode }) => {
             {/* Top Nav */}
             <nav className="bg-white flex items-center justify-between font-dm-sans py-3 px-6 md:px-14 fixed top-0 left-0 right-0 z-10">
                 {/* Logo & Name */}
-                <div className="flex items-center gap-2 font-bold">
+                <Link href="/" className="flex items-center gap-1 cursor-pointer font-bold">
                     <Image
                         src="/favicon-2.png"
                         alt="Umurava logo"
@@ -24,8 +24,8 @@ const Nav = ({ children }: { children: React.ReactNode }) => {
                         height={40}
                         priority
                     />
-                    <p className="text-base hover:text-primary">Umurava</p>
-                </div>
+                    <p className="text-base">Umurava</p>
+                </Link>
 
                 <div className='hidden lg:flex w-7/12 items-center justify-evenly'>
                     {children}

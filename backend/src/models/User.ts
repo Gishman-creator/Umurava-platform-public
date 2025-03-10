@@ -44,7 +44,7 @@ const UserSchema = new Schema<IUser>({
     role: {
         type: String,
         enum: ['talent', 'admin'],
-        default: 'user'
+        default: 'talent'
     },
     profileImageUrl: {
         type: String,
@@ -76,6 +76,19 @@ const UserSchema = new Schema<IUser>({
         default: []
     }],
     
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
+        type: String,
+        select: false
+    },
+    emailVerificationExpires: {
+        type: Date,
+        select: false
+    },
+    
 }, {
     timestamps: true,
 });
@@ -94,13 +107,13 @@ UserSchema.methods.isAdmin = function(): boolean {
  * @description Checks if user has regular user role
  * @returns {boolean} True if user is regular user
  */
-UserSchema.methods.isUser = function(): boolean {
-    return this.role === 'user';
+UserSchema.methods.isTalent = function(): boolean {
+    return this.role === 'talent';
 };
 
 UserSchema.pre('save', function(next) {
     if (this.isModified('role')) {
-        if (this.role === 'user') {
+        if (this.role === 'talent') {
             this.createdChallenges = [];
         } else if (this.role === 'admin') {
             this.completedChallenges = [];
@@ -131,12 +144,6 @@ UserSchema.methods.comparePassword = async function (enteredPassword: string): P
         throw error;
     }
 }
-
-// Add validation
-UserSchema.path('email').validate(async function(email: string) {
-    const emailCount = await model('User').countDocuments({ email });
-    return !emailCount;
-}, 'Email already exists');
 
 // Add method to get challenge count
 UserSchema.methods.getChallengeCount = function(type: 'completed' | 'ongoing' | 'created'): number {

@@ -11,10 +11,10 @@ function Nav() {
     const pathName = usePathname();
 
     return (
-        <div className='bg-white flex justify-between items-center sticky top-0 py-3 px-8 z-20'>
-            <div className="bg-gray-50 shadow-sm h-fit w-1/2 flex items-center p-1 pl-3 space-x-2 rounded-md">
+        <div className='bg-white flex justify-between items-center sticky top-0 py-3 px-4 sm:px-8 z-20'>
+            <div className="bg-gray-100 shadow-sm h-fit w-1/2 flex items-center p-1 pl-3 space-x-2 rounded-md">
                 <Search className='h-4 w-4 text-gray-400' />
-                <input className="bg-gray-50 h-6 w-full outline-none ring-0 focus:ring-0 focus:outline-none text-xs" type="text" placeholder="Search here" />
+                <input className="bg-gray-100 h-6 w-full outline-none ring-0 focus:ring-0 focus:outline-none text-xs" type="text" placeholder="Search here" />
             </div>
             <DropdownMenu>
                 <DropdownMenuTrigger>
@@ -43,7 +43,7 @@ function Nav() {
 
 const NavItem = ({ href, children }: { href: string; children: React.ReactNode }) => {
     const pathName = usePathname();
-    const isActive = pathName.startsWith(href);
+    const isActive = pathName?.startsWith(href);
 
     return (
         <Link

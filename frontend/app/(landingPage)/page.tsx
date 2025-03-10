@@ -1,3 +1,4 @@
+'use client'
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
@@ -9,10 +10,35 @@ import Link from "next/link";
 import { TestimonialCarouselComponent } from "./_components/TestimonialCarousel";
 import { getChallenges } from "../actions/challenges";
 import { Challenge } from "../types/challenge";
+import { useEffect, useState } from "react";
+import ChallengeCardSkeleton from "@/components/skeletons/ChallengeCardSkeleton";
 
-export default async function Home() {
+export default function Home() {
+    const [challenges, setChallenges] = useState<Challenge[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const challenges: Challenge[] = await getChallenges(3);
+    useEffect(() => {
+        const fetchChallenge = async () => {
+            try {
+                const challengeData = await getChallenges(3);
+                console.log("Challenge data:", challengeData);
+
+                if (challengeData && Object.keys(challengeData).length === 0) {
+                    // If the fetched data is an empty object, treat it as a 404
+                    setChallenges([]);
+                } else {
+                    setChallenges(challengeData);
+                }
+            } catch (error) {
+                console.error("Error fetching challenge:", error);
+                setChallenges([]); // In case of an error, treat it as a 404
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchChallenge();
+    }, []);
 
     return (
         <div className="flex flex-col items-center justify-center">
@@ -160,9 +186,14 @@ export default async function Home() {
                 </div>
 
                 {/* Challenge Card */}
-
-                {challenges.length !== 0 ? (
-                    <div className="grid grid-cols-3 gap-6 mt-4">
+                {isLoading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center gap-6 mt-4">
+                        {[...Array(3)].map((_, index) => (
+                            <ChallengeCardSkeleton key={index} />
+                        ))}
+                    </div>
+                ) : challenges.length !== 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center gap-6 mt-4">
                         {challenges.slice(0, 3).map((challenge) => (
                             <ChallengeCard key={challenge._id} challenge={challenge} />
                         ))}
@@ -174,7 +205,7 @@ export default async function Home() {
                 )}
 
                 <Button className="border-primary text-xs text-primary px-12" variant="outline" asChild>
-                    <Link href="/#">View More</Link>
+                    <Link href="/challenges">View More</Link>
                 </Button>
             </div>
             <div className="bg-[#F9FAFB] flex flex-col items-center gap-14 w-full px-5 sm:px-14 py-14">

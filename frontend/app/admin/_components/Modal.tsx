@@ -9,7 +9,7 @@ const Modal = ({ onClose }: { onClose: () => void }) => {
     // Close the modal and navigate back when clicking outside or pressing the button
     const handleClose = () => {
         onClose();
-        router.back(); // Navigate back to the previous page
+        router.push(`/${localStorage.getItem('role')}/challenges`); // Navigate back to the previous page
     };
 
     return (

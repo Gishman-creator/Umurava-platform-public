@@ -39,6 +39,7 @@ export default function SignupForm() {
 
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [message, setMessage] = useState('')
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -111,7 +112,7 @@ export default function SignupForm() {
       }
     }
 
-    const urlStep = Number.parseInt(searchParams.get("step") || "0", 10);
+    const urlStep = Number.parseInt(searchParams?.get("step") || "0", 10);
     if (urlStep === 2 && storedData && JSON.parse(storedData).email) {
       setStep(urlStep);
     } else {
@@ -129,9 +130,9 @@ export default function SignupForm() {
   }, [formData, step])
 
   const updateURL = (newStep: number) => {
-    const params = new URLSearchParams(searchParams)
-    params.set("step", newStep.toString())
-    router.push(`/signup?${params.toString()}`)
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("step", newStep.toString());
+    router.push(`/signup?${params.toString()}`);
   }
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,31 +230,40 @@ export default function SignupForm() {
       formDataToSend.append("email", formData.email);
       formDataToSend.append("password", formData.password);
       formDataToSend.append("name", formData.fullName);
-      formDataToSend.append("specialty", formData.specialization);
-      formDataToSend.append("role", formData.role);
+      formDataToSend.append("specialty", formData.specialization.toLowerCase());
+      formDataToSend.append("role", formData.role.toLowerCase());
+      formDataToSend.append("isEmailVerified", "false"); // Add email verification flag
+
       if (formData.profileImage) {
-        console.log("profileImage", formData.profileImage)
         formDataToSend.append("profileImage", formData.profileImage);
       }
 
-      const response = await fetch(`${BASE_URL}/api/users/register`, {
+      const response = await fetch(`${BASE_URL}/users/register`, {
         method: "POST",
         body: formDataToSend,
       });
+      console.log(response)
 
       const data = await response.json();
+      console.log(data)
 
       if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
+        throw new Error(data.error || data.message || "Registration failed");
       }
 
+      // Clear form data from local storage
       localStorage.removeItem(STORAGE_KEY);
-      router.push("/login"); // Redirect to login page
+
+      // Show success message before redirect
+      setMessage("Registration successful! Please check your email for verification.");
+
+      // Redirect to unverified page after a short delay
+      router.push("/unverified");
 
     } catch (error) {
       const err = error as Error;
       console.error("Signup error:", error);
-      setError(err.message);
+      setError(err.message || "An error occurred during registration");
     } finally {
       setIsLoading(false);
     }
@@ -508,6 +518,7 @@ export default function SignupForm() {
               </div>
             )}
             {error && (<p className="text-sm text-red-500 text-center">{error}</p>)}
+            {message && (<p className="text-sm text-primary text-center">{message}</p>)}
             <div className="text-center text-sm">
               Already have an account?{" "}
               <Link href="/login" className="text-blue-600 hover:underline">

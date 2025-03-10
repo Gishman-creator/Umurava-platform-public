@@ -59,7 +59,7 @@ export default class UserService extends BaseService<IUser> {
     }>) {
         const user = await this.findById(userId);
 
-        if (user.role === 'user') {
+        if (user.role === 'talent') {
             if ('completedchallenge' in stats) {
                 user.completedChallenges = [new Types.ObjectId(stats.completedchallenge)];
             }
@@ -86,10 +86,6 @@ export default class UserService extends BaseService<IUser> {
         const user = await this.findById(userId);
         const superUser = await this.findById(superUserId);
 
-        if (!superUser.isSuper()) {
-            throw new AuthorizationError('Only super users can process admin requests');
-        }
-
         if (user.adminRequest?.status !== AdminRequestStatus.PENDING) {
             throw new ValidationError('No pending admin request found');
         }
@@ -112,10 +108,6 @@ export default class UserService extends BaseService<IUser> {
 
     async getPendingAdminRequests(superUserId: string) {
         const superUser = await this.findById(superUserId);
-
-        if (!superUser.isSuper()) {
-            throw new AuthorizationError('Only super users can view pending requests');
-        }
 
         return User.find({
             'adminRequest.status': AdminRequestStatus.PENDING

@@ -40,7 +40,7 @@ interface IUserBaseAttributes {
         fileId: ObjectId;
         metadata: ImageMetadata;
     };
-    role: 'user' | 'admin';
+    role: 'talent' | 'admin';
     created_at: Date;
     updated_at: Date;
     adminRequest?: {
@@ -59,7 +59,6 @@ interface IUserOnlyAttributes {
 }
 
 interface IAdminOnlyAttributes {
-    isSuperAdmin?: boolean;
     managedUsers?: number;
     challengecreated: number;
 }
@@ -68,7 +67,7 @@ export interface IUser extends Document {
     name: string;
     email: string;
     password: string;
-    role: 'user' | 'admin' | 'super_admin';
+    role: 'talent' | 'admin';
     number: string;
     comparePassword(candidatePassword: string): Promise<boolean>;
     profilePicture?: string;
@@ -98,7 +97,6 @@ export interface IUser extends Document {
     specialty: string;
     
     // Methods
-    isSuper(): boolean;
     isAdmin(): boolean;
     isUser(): boolean;
     requestAdminRole(): Promise<void>;

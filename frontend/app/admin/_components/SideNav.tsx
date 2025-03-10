@@ -9,16 +9,18 @@ import React, { ComponentProps } from "react";
 
 const SideNav = () => {
     return (
-        <div className="bg-primary sticky flex flex-col justify-between left-0 top-0 bottom-0 min-h-screen max-h-screen min-w-fit py-4 px-2">
+        <div className="bg-primary sticky hidden md:flex md:flex-col justify-between left-0 top-0 bottom-0 min-h-screen max-h-screen min-w-fit py-4 px-2">
             <div className="space-y-2">
-                <Image
-                    src="/favicon-3.png"
-                    alt="Umurava logo"
-                    className="pl-3 mb-4"
-                    width={50}
-                    height={50}
-                    priority
-                />
+                <Link href="/admin/dashboard">
+                    <Image
+                        src="/favicon-3.png"
+                        alt="Umurava logo"
+                        className="pl-3 mb-4"
+                        width={50}
+                        height={50}
+                        priority
+                    />
+                </Link>
                 <NavItem href="/admin/dashboard">
                     <House className="mr-2 h-5 w-5" /> Dashboard
                 </NavItem>
@@ -42,7 +44,7 @@ const SideNav = () => {
                 <Link title="logout" href="/logout" className="flex items-center justify-between text-white p-3 mt-6 rounded-md hover:bg-blue-500 space-x-2">
                     <div className="flex items-center gap-2">
                         <div className="relative">
-                            <Image className="bg-gray-800 border-2 border-gray-300 w-9 h-9 rounded-full object-cover" src={localStorage.getItem("imageUrl") || "/default-profile.png"}  alt="profile" height={100} width={100} />
+                            <Image className="bg-gray-800 border-2 border-gray-300 w-9 h-9 rounded-full object-cover" src={localStorage.getItem("imageUrl") || "/default-profile.png"} alt="profile" height={100} width={100} />
                             <span className="bottom-0 left-6 absolute w-2.5 h-2.5 bg-[#04802E] rounded-full"></span>
                         </div>
                         <div className="text-xs">

@@ -10,16 +10,9 @@ const router = Router();
 const userController = new UserController();
 
 // Public routes
-router.post('/login', userController.login);
-router.post('/register', 
-    uploadImage.single('profileImage'),
-    userController.register
-);
-// Comment out these routes
-/*
+router.post('/register', uploadImage.single('profileImage'), userController.register);
 router.get('/verify-email/:token', userController.verifyEmail);
-router.post('/resend-verification', userController.resendVerificationEmail);
-*/
+router.post('/login', userController.login);
 
 router.post(
     '/profile/picture',

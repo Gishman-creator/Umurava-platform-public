@@ -37,7 +37,7 @@ export default abstract class BaseController<T extends Document> {
       const { id, creator_id } = req.params;
       let item;
 
-      if (creator_id) {
+      if (creator_id && creator_id !== 'null') {
         item = await this.model.findOne({ _id: id, creator_id }).lean();
       } else {
         item = await this.model.findById(id);

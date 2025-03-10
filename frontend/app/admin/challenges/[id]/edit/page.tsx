@@ -11,8 +11,8 @@ import { formatTitle } from "@/lib/utils";
 
 function EditChallengePage() {
     // Retrieve and normalize the id parameter
-    const { id: paramId } = useParams();
-    const id = Array.isArray(paramId) ? paramId[0] : paramId;
+    const params = useParams();
+    const id = typeof params?.id === "string" ? params.id : params?.id?.[0] || null;
     
     const [challenge, setChallenge] = useState<Challenge | null>(null);
     const [loading, setLoading] = useState(true);
@@ -101,7 +101,7 @@ function EditChallengePage() {
 
         // API call to create the challenge
         try {
-            const response = await fetch(`${BASE_URL}/api/challenges/edit/${id}`, {
+            const response = await fetch(`${BASE_URL}/challenges/edit/${id}`, {
                 method: "PATCH",
                 body: formData,
                 headers: {
@@ -129,11 +129,11 @@ function EditChallengePage() {
 
     return (
         <div>
-            <div className='bg-white flex text-sm items-center gap-2 px-8 py-3 border-y border-gray-200'>
+            <div className='bg-white flex flex-wrap text-sm items-center gap-2 px-4 sm:px-8 py-3 border-y border-gray-200'>
                 <GoBackButton />
-                <Link className='text-gray-600' href="/admin/challenges">Challenges & Hackathons /</Link>
+                <Link className='text-gray-600 hover:underline' href="/admin/challenges">Challenges & Hackathons /</Link>
                 <p className='text-gray-600'>Edit Challenge /</p>
-                <p className='text-primary'>{challenge.title}</p>
+                <p className='text-primary hover:underline cursor-pointer'>{challenge.title}</p>
             </div>
             <ChallengeForm initialData={challenge} onSubmit={handleUpdate} isSubmitting={isSubmitting} error={error} />
         </div>

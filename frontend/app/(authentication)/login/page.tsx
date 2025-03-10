@@ -23,12 +23,12 @@ export default function LoginForm() {
     setError(null);
     try {
       console.log("Login attempt:", formData);
-      const response = await fetch(`${BASE_URL}/api/users/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json', // Add this header
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
       });
   
       console.log(response);

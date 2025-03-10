@@ -82,7 +82,7 @@ export function BulletPointTextarea({
       onFocus={handleFocus}
       onBlur={handleBlur}
       placeholder="Enter text here..."
-      className="min-h-[200px]"
+      className="min-h-[200px] text-sm"
     />
   );
 }

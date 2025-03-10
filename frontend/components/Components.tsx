@@ -6,14 +6,21 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { setRole, type AuthState } from "@/lib/features/authentication/authSlice";
 import { formatTitle } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import Image from "next/image";
 
-const role = localStorage.getItem("role");
-
 export const ChallengeButton = ({ id, title }: { id: string; title: string }) => {
+
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    if (storedRole) {
+      setRole(storedRole);
+    }
+  }, []);
+
   const pathname = usePathname();
   const dispatch = useDispatch();
 
@@ -33,11 +40,11 @@ export const GoBackButton = () => {
 
   return (
     <div
-      className="flex items-center gap-2 cursor-pointer"
+      className="flex items-center gap-2 cursor-pointer group"
       onClick={() => router.back()}
     >
       <button
-        className="p-1.5 border w-fit border-gray-200 rounded-lg flex items-center gap-2 hover:border-primary transition"
+        className="p-1.5 border w-fit border-gray-200 rounded-lg flex items-center gap-2 group-hover:border-primary transition"
       >
         <MoveLeft className="w-3 h-3 text-gray-600" />
       </button>
@@ -143,11 +150,20 @@ export const FilterTab = ({ tab, label, count }: { tab: string; label: string; c
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const currentTab = searchParams.get("tab") || "all";
+  const currentTab = searchParams?.get("tab") || "all";
   const isActive = currentTab === tab;
 
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    if (storedRole) {
+      setRole(storedRole);
+    }
+  }, []);
+
   const handleClick = () => {
-    const newParams = new URLSearchParams(searchParams);
+    const newParams = new URLSearchParams(searchParams || "");
     newParams.set("tab", tab);
     router.push(`/${role}/challenges?${newParams.toString()}`);
   };
@@ -167,7 +183,7 @@ export const FilterTab = ({ tab, label, count }: { tab: string; label: string; c
 
 export const ParticipantListItem = ({ name, speciality, image }: { name: string; speciality: string; image: string }) => {
   return (
-    <div className="flex items-center gap-2 p-4 border-y border-gray-200">
+    <div className="flex items-center gap-2 px-6 py-4 border-y border-gray-200">
       <div className="relative">
         <Image className="bg-gray-800 w-9 h-9 rounded-full object-cover" src={image} alt="profile" height={100} width={100} />
         <span className="bottom-0 left-6 absolute w-2.5 h-2.5 bg-[#04802E] rounded-full"></span>

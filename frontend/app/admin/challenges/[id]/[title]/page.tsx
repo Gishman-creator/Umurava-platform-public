@@ -9,12 +9,15 @@ import Link from 'next/link';
 import { getChallenge } from '@/app/actions/challenges';
 import { Challenge } from '@/app/types/challenge';
 import { useParams } from "next/navigation";
+import ChallengePageSkeleton from "@/components/skeletons/ChallengePageSkeleton";
 
 function Page() {
-    // Retrieve and normalize the id parameter
-    const { id: paramId } = useParams();
-    const id = Array.isArray(paramId) ? paramId[0] : paramId;
+  // Retrieve and normalize the id parameter
+  const params = useParams();
+  const id = typeof params?.id === "string" ? params.id : params?.id?.[0] || null;
+  
   const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchChallenge = async () => {
@@ -32,11 +35,19 @@ function Page() {
       } catch (error) {
         console.error("Error fetching challenge:", error);
         setChallenge(null); // In case of an error, treat it as a 404
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchChallenge();
   }, [id]);
+
+  if (isLoading) {
+    return (
+      <ChallengePageSkeleton />
+    );
+  }
 
   if (challenge === null) {
     return (
@@ -57,22 +68,22 @@ function Page() {
 
   return (
     <div>
-      <div className='bg-white flex text-sm items-center gap-2 px-8 py-3 border-y border-gray-200'>
+      <div className='bg-white flex flex-wrap text-sm items-center gap-2 px-4 sm:px-8 py-3 border-y border-gray-200'>
         <GoBackButton />
-        <Link className='text-gray-600' href="/admin/challenges">Challenges & Hackathons /</Link>
-        <p className='text-primary'>{challenge.title}</p>
+        <Link className='text-gray-600 hover:underline' href="/admin/challenges">Challenges & Hackathons /</Link>
+        <p className='text-primary hover:underline cursor-pointer'>{challenge.title}</p>
       </div>
-      <div className='flex justify-between items-start py-6 px-8'>
-        <div className='bg-white p-4 pb-6 border border-gray-200 rounded-lg w-fit'>
+      <div className='flex flex-col xl:flex-row justify-between space-y-8 xl:space-y-0 items-start py-6 px-4 sm:px-8'>
+        <div className='bg-white p-4 pb-6 border border-gray-200 rounded-lg w-full lg:w-[35rem]'>
           <Image
             src={typeof challenge.imageUrl === "string" ? challenge.imageUrl :
               (challenge.imageUrl instanceof Blob ? URL.createObjectURL(challenge.imageUrl) : '')}
             alt="challenge image"
-            className="object-cover h-72 w-[30rem] rounded-lg"
+            className="object-cover h-72 w-full rounded-lg"
             height={1000}
             width={1000}
           />
-          <div className='w-[30rem]'>
+          <div className=''>
             <h2 className='font-bold mt-6'>Project Brief: {challenge.title}</h2>
             <p className='text-gray-600 text-sm mt-2'>{challenge.description}</p>
 
@@ -98,17 +109,21 @@ function Page() {
               ))}
             </ul>
 
-            <h2 className='font-bold mt-6'>NOTE:</h2>
-            <ul className='pl-4 list-disc text-gray-600 text-sm mt-2'>
-              {challenge.note?.map((note, index) => (
-                <li key={index}>{note}</li>
-              ))}
-            </ul>
+            {challenge.note?.length > 0 && (
+              <>
+                <h2 className='font-bold mt-6'>NOTE:</h2>
+                <ul className='pl-4 list-disc text-gray-600 text-sm mt-2'>
+                  {challenge.note?.map((note, index) => (
+                    <li key={index}>{note}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         </div>
 
-        <div className='space-y-6'>
-          <div className='bg-white p-4 border border-gray-200 rounded-lg w-72'>
+        <div className='space-y-8'>
+          <div className='bg-white px-6 py-4 border border-gray-200 rounded-lg w-80'>
             <h2 className='font-bold'>Key Instructions:</h2>
             <p className='text-gray-600 text-xs mt-2'>
               You are free to schedule the clarification call with the team via this
@@ -159,7 +174,7 @@ function Page() {
           </div>
 
           <div className='bg-white border border-gray-200 rounded-lg w-72'>
-            <div className='flex items-center gap-2 p-4'>
+            <div className='flex items-center gap-2 px-6 py-4'>
               <h2 className='font-bold text-sm'>Participants:</h2>
               <span className='bg-primary text-white text-[0.6rem] rounded-full px-1'>250</span>
             </div>

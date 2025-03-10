@@ -28,6 +28,7 @@ import { uploadImage } from "../middleware/upload";
 import mongoose from "mongoose";
 import CloudStorageService from "../services/CloudStorageService";
 import { sign } from "jsonwebtoken";
+import crypto from 'crypto';
 
 declare module "express" {
   interface Request {
@@ -69,9 +70,10 @@ export default class UserController extends BaseController<IUser> {
         throw new ErrorResponse("Invalid credentials", 401);
       }
 
-    //   if (!user.isEmailVerified) {
-    //     throw new ErrorResponse("Please verify your email first", 403);
-    //   }
+      // Check if email is verified
+      if (!user.isEmailVerified) {
+        throw new ErrorResponse('Please verify your email before logging in', 403);
+      }
 
       const isMatch = await user.comparePassword(password);
       console.log("Password match:", isMatch); // Add logging
@@ -203,7 +205,7 @@ export default class UserController extends BaseController<IUser> {
       }
 
       // Validate user-specific fields
-      if (user.role === "user") {
+      if (user.role === "talent") {
         // User can only update specific fields
         const allowedFields = ["name", "email", "password"];
         Object.keys(updateData).forEach((key) => {
@@ -292,7 +294,7 @@ export default class UserController extends BaseController<IUser> {
         return;
       }
 
-      if (user.role === "user") {
+      if (user.role === "talent") {
         if (completedchallenge !== undefined) {
           user.completedChallenges = completedchallenge;
         }
@@ -417,54 +419,24 @@ export default class UserController extends BaseController<IUser> {
     }
   };
 
-  register = asyncHandler(async (req: AuthRequest, res: Response) => {
-    let createdUser: IUser | null = null;
+  register = asyncHandler(async (req: Request, res: Response) => {
+    const { name, email, password, specialty, role } = req.body;
+    const file = req.file;
     let fileUrl: string | null = null;
 
     try {
-      // 1. Input Validation
-      const { email, password, name, specialty, role, photo } = req.body;
-      const file = req.file;
-
-      if (!email || !password || !name || !specialty || !role) {
-        throw new ValidationError("Please provide all required fields");
-      }
-
-      // 2. Email Format Validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        throw new ValidationError("Please provide a valid email address");
-      }
-
-      // 3. Password Strength Validation
-      if (password.length < 8) {
-        throw new ValidationError(
-          "Password must be at least 8 characters long"
-        );
-      }
-      if (
-        !/[A-Z]/.test(password) ||
-        !/[a-z]/.test(password) ||
-        !/[0-9]/.test(password)
-      ) {
-        throw new ValidationError(
-          "Password must contain uppercase, lowercase and numbers"
-        );
-      }
-
-      // 4. Check for Existing User
-      const existingUser = await User.findOne({
-        $or: [{ email: email.toLowerCase() }],
-      });
-
+      // Check for existing user first
+      const existingUser = await User.findOne({ email });
       if (existingUser) {
-        console.log("Email already registered");
-        return res.status(500).json({
-          success: false,
-          message: "Email already registered",
-        });
-        throw new Error("Email already registered");
+        throw new ErrorResponse('Email already registered. Please login or use a different email.', 400);
       }
+
+      // Generate verification token
+      const token = crypto.randomBytes(32).toString('hex');
+      const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Send verification email first
+      await EmailService.sendVerificationEmail(email, name, token);
 
       // 5. File Upload Validation
       if (req.file) {
@@ -491,65 +463,79 @@ export default class UserController extends BaseController<IUser> {
         }
       }
 
-      // 6. Create User
-      createdUser = await User.create({
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        password, // Password will be hashed by mongoose pre-save hook
-        specialty: specialty.trim(),
+      // If email sends successfully, create the user
+      const user = await User.create({
+        name,
+        email,
+        password,
+        specialty,
+        role,
         profileImageUrl: fileUrl,
-        role: role,
+        isEmailVerified: false,
+        emailVerificationToken: token,
+        emailVerificationExpires: tokenExpiry
       });
 
-      // 7. Generate Token and Send Response
-      const token = this.generateToken(createdUser);
-
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
-        message: "Registration successful",
-        data: {
-          token,
-          user: {
-            _id: createdUser._id,
-            name: createdUser.name,
-            email: createdUser.email,
-            specialty: createdUser.specialty,
-            profileImageUrl: createdUser.profileImageUrl,
-            role: createdUser.role,
-          },
-        },
+        message: 'Registration successful. Please check your email to verify your account.'
       });
+
+    } catch (error: any) {
+      if (error.code === 11000) {
+        throw new ErrorResponse('Email already registered. Please login or use a different email.', 400);
+      }
+      throw error;
+    }
+  });
+
+  verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+    const { token } = req.params;
+
+    try {
+      // Find user with matching verification token and token not expired
+      const user = await User.findOne({
+        emailVerificationToken: token,
+        emailVerificationExpires: { $gt: Date.now() }
+      }).select('+emailVerificationToken +emailVerificationExpires');
+
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid or expired verification token'
+        });
+      }
+
+      // Update user verification status
+      user.isEmailVerified = true;
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      await user.save();
+
+      // Generate JWT token
+      const userToken: any = jwt.sign({ id: user._id }, config.jwtSecret as jwt.Secret, {
+        expiresIn: "30d",
+      });
+
+      return res.status(200).json({
+        success: true,
+        token: userToken,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          imageUrl: user.profileImageUrl,
+        },
+        message: 'Greate, Email verified successfully.'
+      });
+
     } catch (error) {
-      // 8. Clean up on Error
-      if (fileUrl) {
-        try {
-          await CloudStorageService.deleteFile(fileUrl);
-        } catch (deleteError) {
-          logger.error("Error cleaning up uploaded file:", deleteError);
-        }
-      }
-
-      // Ensure `error` is an instance of Error before accessing its properties
-      if (error instanceof Error) {
-        logger.error("Registration error:", error.message);
-        logger.error("Stack trace:", error.stack);
-        logger.error("Stack trace:", error);
-      } else {
-        logger.error("Unknown error:", error); // If `error` is not an instance of Error
-      }
-
-      if (error instanceof ValidationError) {
-        console.log("Validation error:", error.message);
-        res.status(400).json({
-          success: false,
-          message: error.message,
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: "Registration failed. Please try again later.",
-        });
-      }
+      logger.error('Email verification error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error verifying email'
+      });
     }
   });
 

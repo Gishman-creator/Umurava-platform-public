@@ -11,6 +11,7 @@ import ImageUpload from "./ImageUpload";
 import { Textarea } from "@/components/ui/textarea";
 import { Challenge } from "@/app/types/challenge";
 import Link from "next/link";
+import { Asterisk } from "lucide-react";
 
 interface ChallengeFormProps {
     initialData?: Challenge;
@@ -82,9 +83,9 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ initialData, onSubmit, is
     };
 
     return (
-        <div className="flex justify-center items-center py-6 px-8">
-            <form onSubmit={handleSubmit} className="bg-white px-6 py-6 border border-gray-200 rounded-lg w-fit">
-                <div className="w-[30rem] space-y-6">
+        <div className="flex justify-center items-center py-6 px-4 sm:px-8">
+            <form onSubmit={handleSubmit} className="bg-white px-6 py-6 border border-gray-200 rounded-lg w-full sm:w-fit">
+                <div className="min-w-full sm:w-[35rem] space-y-6">
                     <div>
                         {initialData && (
                             <h2 className="text-center text-lg font-bold">Edit a Challenge</h2>
@@ -103,35 +104,53 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ initialData, onSubmit, is
                     </div>
 
                     <div className="grid min-w-full max-w-sm items-center gap-1.5">
-                        <Label htmlFor="title">Challenge/Hackathon Title</Label>
-                        <Input type="text" id="title" name="title" placeholder="Enter title" value={formData.title} onChange={handleChange} required />
+                        <div className="flex items-center gap-0.5">
+                            <Label htmlFor="title">Challenge/Hackathon Title</Label>
+                            <Asterisk className="h-3 w-3 text-red-400" />
+                        </div>
+                        <Input className="text-sm" type="text" id="title" name="title" placeholder="Enter title" value={formData.title} onChange={handleChange} required />
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="deadline">Deadline</Label>
-                            <input className="py-1.5 px-3 rounded-md border border-gray-200 focus-visible:outline-none focus-visible:border-[#FA9874]" type="date" id="deadline" name="deadline" value={formData.deadline} onChange={handleChange} required />
+                    <div className="flex flex-col min-w-full sm:w-[35rem] sm:flex-row items-center gap-4">
+                        <div className="grid min-w-full sm:min-w-0 sm:w-full items-center gap-1.5">
+                            <div className="flex items-center gap-0.5">
+                                <Label htmlFor="deadline">Deadline</Label>
+                                <Asterisk className="h-3 w-3 text-red-400" />
+                            </div>
+                            <input className="py-1.5 px-3 rounded-md border border-gray-200 focus-visible:outline-none focus-visible:border-[#FA9874] text-sm" type="date" id="deadline" name="deadline" value={formData.deadline} onChange={handleChange} required />
                         </div>
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="duration">Duration</Label>
-                            <Input type="text" id="duration" name="duration" placeholder="Duration" value={formData.duration} onChange={handleChange} required />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="prize">Money Prize</Label>
-                            <Input type="text" id="prize" name="prize" placeholder="$150 - $400" value={formData.prize} onChange={handleChange} required />
-                        </div>
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="contactEmail">Contact Email</Label>
-                            <Input type="email" id="contactEmail" name="contactEmail" placeholder="Email" value={formData.contactEmail} onChange={handleChange} required />
+                        <div className="grid min-w-full sm:min-w-0 sm:w-full items-center gap-1.5">
+                            <div className="flex items-center gap-0.5">
+                                <Label htmlFor="duration">Duration</Label>
+                                <Asterisk className="h-3 w-3 text-red-400" />
+                            </div>
+                            <Input className="text-sm" type="text" id="duration" name="duration" placeholder="Duration" value={formData.duration} onChange={handleChange} required />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col min-w-full sm:w-[35rem] sm:flex-row items-center gap-4">
+                        <div className="grid min-w-full sm:min-w-0 sm:w-full items-center gap-1.5">
+                            <div className="flex items-center gap-0.5">
+                                <Label htmlFor="prize">Money Prize</Label>
+                                <Asterisk className="h-3 w-3 text-red-400" />
+                            </div>
+                            <Input className="text-sm" type="text" id="prize" name="prize" placeholder="$150 - $400" value={formData.prize} onChange={handleChange} required />
+                        </div>
+                        <div className="grid min-w-full sm:min-w-0 sm:w-full items-center gap-1.5">
+                            <div className="flex items-center gap-0.5">
+                                <Label htmlFor="contactEmail">Contact Email</Label>
+                                <Asterisk className="h-3 w-3 text-red-400" />
+                            </div>
+                            <Input className="text-sm" type="email" id="contactEmail" name="contactEmail" placeholder="Email" value={formData.contactEmail} onChange={handleChange} required />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
                         <div className="space-y-2 w-full">
-                            <Label htmlFor="specialization">Challenge Category</Label>
+                            <div className="flex items-center gap-0.5">
+                                <Label htmlFor="specialization">Challenge Category</Label>
+                                <Asterisk className="h-3 w-3 text-red-400" />
+                            </div>
                             <Select
                                 value={formData.category}
                                 onValueChange={(value) => {
@@ -151,7 +170,10 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ initialData, onSubmit, is
                             </Select>
                         </div>
                         <div className="space-y-2 w-full">
-                            <Label htmlFor="specialization">Seniority</Label>
+                            <div className="flex items-center gap-0.5">
+                                <Label htmlFor="specialization">Seniority</Label>
+                                <Asterisk className="h-3 w-3 text-red-400" />
+                            </div>
                             <Select
                                 value={formData.seniority}
                                 onValueChange={(value) => {
@@ -171,13 +193,19 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ initialData, onSubmit, is
                     </div>
 
                     <div className="grid min-w-full gap-1.5">
-                        <Label htmlFor="description">Project Brief</Label>
-                        <Textarea className="min-h-[200px]" id="description" name="description" placeholder="Enter text here..." value={formData.description} onChange={handleChange} />
+                        <div className="flex items-center gap-0.5">
+                            <Label htmlFor="description">Project Brief</Label>
+                            <Asterisk className="h-3 w-3 text-red-400" />
+                        </div>
+                        <Textarea className="min-h-[200px] text-sm" id="description" name="description" placeholder="Enter text here..." value={formData.description} onChange={handleChange} />
                         <p className="text-xs text-gray-600">Keep this simple of 250 character</p>
                     </div>
 
                     <div className="grid min-w-full gap-1.5">
-                        <Label htmlFor="requirements">Product Requirements</Label>
+                        <div className="flex items-center gap-0.5">
+                            <Label htmlFor="requirements">Product Requirements</Label>
+                            <Asterisk className="h-3 w-3 text-red-400" />
+                        </div>
                         <BulletPointTextarea
                             value={formData.requirements}
                             onChange={(newRequirements) => handleBulletChange("requirements", newRequirements)}
@@ -186,7 +214,10 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ initialData, onSubmit, is
                     </div>
 
                     <div className="grid min-w-full gap-1.5">
-                        <Label htmlFor="design">Product Design</Label>
+                        <div className="flex items-center gap-0.5">
+                            <Label htmlFor="design">Product Design</Label>
+                            <Asterisk className="h-3 w-3 text-red-400" />
+                        </div>
                         <BulletPointTextarea
                             value={formData.design}
                             onChange={(newDesign) => handleBulletChange("design", newDesign)}
@@ -195,7 +226,10 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ initialData, onSubmit, is
                     </div>
 
                     <div className="grid min-w-full gap-1.5">
-                        <Label htmlFor="deliverables">Deliverables</Label>
+                        <div className="flex items-center gap-0.5">
+                            <Label htmlFor="deliverables">Deliverables</Label>
+                            <Asterisk className="h-3 w-3 text-red-400" />
+                        </div>
                         <BulletPointTextarea
                             value={formData.deliverables}
                             onChange={(newDeliverables) => handleBulletChange("deliverables", newDeliverables)}
@@ -204,7 +238,10 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ initialData, onSubmit, is
                     </div>
 
                     <div className="grid min-w-full gap-1.5">
-                        <Label htmlFor="skills">Skills needed</Label>
+                        <div className="flex items-center gap-0.5">
+                            <Label htmlFor="skills">Skills needed</Label>
+                            <Asterisk className="h-3 w-3 text-red-400" />
+                        </div>
                         <BulletPointTextarea
                             value={formData.skills}
                             onChange={(newSkills) => handleBulletChange("skills", newSkills)}
@@ -222,7 +259,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ initialData, onSubmit, is
                     </div>
 
                     <div className="flex flex-col items-center gap-6 pt-8">
-                        { error && (<p className="text-red-500 text-xs">{error}</p>)}
+                        {error && (<p className="text-red-500 text-xs">{error}</p>)}
                         <div className='flex items-center gap-6 w-full'>
                             <Button type="button" variant={'outline'} className="border-primary text-xs text-primary w-2/5" onClick={() => router.back()}>Cancel</Button>
                             <Button disabled={isSubmitting} type="submit" className="bg-primary text-xs text-white w-full">

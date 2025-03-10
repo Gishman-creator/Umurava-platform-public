@@ -9,16 +9,18 @@ import React, { ComponentProps } from "react";
 
 const SideNav = () => {
     return (
-        <div className="bg-primary sticky flex flex-col justify-between left-0 top-0 bottom-0 min-h-screen max-h-screen min-w-fit py-4 px-2">
+        <div className="bg-primary sticky hidden md:flex md:flex-col justify-between left-0 top-0 bottom-0 min-h-screen max-h-screen min-w-fit py-4 px-2">
             <div className="space-y-2">
-                <Image
-                    src="/favicon-3.png"
-                    alt="Umurava logo"
-                    className="pl-3 mb-4"
-                    width={50}
-                    height={50}
-                    priority
-                />
+                <Link href="/talent/dashboard">
+                    <Image
+                        src="/favicon-3.png"
+                        alt="Umurava logo"
+                        className="pl-3 mb-4"
+                        width={50}
+                        height={50}
+                        priority
+                    />
+                </Link>
                 <NavItem href="/talent/dashboard">
                     <House className="mr-2 h-5 w-5" /> Dashboard
                 </NavItem>

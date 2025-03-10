@@ -7,25 +7,21 @@ export const metadata: Metadata = {
     description: "Build Work Experience Through Skills Challenges Program",
 };
 
-export default function RootLayout({
+export default function LandingPageLayout({
     children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
+}: {
+    children: React.ReactNode
+}) {
     return (
-        <html lang="en">
-            <body
-                className='antialiased'
-            >
-                <Nav>
-                    <NavItem href='/'>Home</NavItem>
-                    <NavItem href='/challenges'>Challenge & Hackathons</NavItem>
-                    <NavItem href='/institutions'>For Eductional Institutions</NavItem>
-                    <NavItem href='/about-us'>About Us</NavItem>
-                </Nav>
-                {children}
-                <Footer />
-            </body>
-        </html>
+        <main>
+            <Nav>
+                <NavItem href='/'>Home</NavItem>
+                <NavItem href='/challenges'>Challenge & Hackathons</NavItem>
+                <NavItem href='/institutions'>For Eductional Institutions</NavItem>
+                <NavItem href='/about-us'>About Us</NavItem>
+            </Nav>
+            {children}
+            <Footer />
+        </main>
     );
 }

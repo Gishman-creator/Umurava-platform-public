@@ -12,13 +12,18 @@ export default function ChallengeCard({ challenge }: ChallengeProps) {
     return (
         <div className="border rounded-md w-fit h-fit">
             <div className="p-3">
-                <Image
+                <div className="relative">
+                  <Image
                     src={typeof challenge.imageUrl === "string" ? challenge.imageUrl : URL.createObjectURL(challenge.imageUrl)}
                     alt={challenge.title}
                     className="object-cover h-40"
                     height={160}
                     width={270}
-                />
+                  />
+                  <p className="absolute top-2 right-2 bg-green-600 text-white text-xs font-medium py-1 px-3 rounded-md">
+                    {challenge.status || "Open"}
+                  </p>
+                </div>
                 <p
                     className="text-sm font-semibold my-6 max-w-[270px]"
                     title={challenge.title}

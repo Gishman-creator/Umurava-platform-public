@@ -147,7 +147,7 @@
 
     <script>
         const PORT = 3000;  // Default port
-        const API_URL = `http://localhost:${PORT}/api`;
+        const API_URL = `https://umurava-platform-1.onrender.com/api`;
         let token = localStorage.getItem('token');
 
         // Validation functions
@@ -372,7 +372,7 @@
                 formData.append('email', document.getElementById('registerEmail').value.trim().toLowerCase());
                 formData.append('number', document.getElementById('registerPhone').value.trim());
                 formData.append('password', document.getElementById('registerPassword').value);
-                formData.append('role', 'user');
+                formData.append('role', 'talent');
                 formData.append('specialty', document.getElementById('specialty').value);
 
                 // Add image if selected
