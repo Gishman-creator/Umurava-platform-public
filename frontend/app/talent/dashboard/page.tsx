@@ -7,11 +7,19 @@ import { Bell, ChevronDown, ChevronRight, Eye, FileText } from 'lucide-react'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { Challenge } from '@/app/types/challenge';
-import { getChallenges } from '@/app/actions/challenges';
+import { getChallenges, getChallengeStats } from '@/app/actions/challenges';
 import ChallengeCardSkeleton from '@/components/skeletons/ChallengeCardSkeleton';
+import { challengeStats } from '@/app/types/stats';
+import { MetricCardSkeleton } from '@/components/skeletons/MetricCardSkeleton';
 
 function page() {
     const [challenges, setChallenges] = useState<Challenge[]>([]);
+    const [stats, setStats] = useState<challengeStats>({
+        total: 0,
+        open: 0,
+        ongoing: 0,
+        completed: 0,
+    });
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -19,8 +27,12 @@ function page() {
             try {
                 console.log('getting challenges')
                 const challengeData = await getChallenges(3);
-                console.log("Challenge data:", challengeData);
+                const challengeStats: challengeStats = await getChallengeStats();
 
+                console.log("Stats:", challengeStats);
+                // console.log("Challenge data:", challengeData);
+
+                setStats(challengeStats);
                 if (challengeData && Object.keys(challengeData).length === 0) {
                     // If the fetched data is an empty object, treat it as a 404
                     setChallenges([]);
@@ -50,9 +62,19 @@ function page() {
                 </Button>
             </div>
             <div className='w-full grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-center'>
-                <MetricCard title="Completed Challenges" amount={5} />
-                <MetricCard title="Open Challenges" amount={200} />
-                <MetricCard title="Ongoing Challenges" amount={200} />
+                {isLoading ? (
+                    <>
+                        <MetricCardSkeleton />
+                        <MetricCardSkeleton />
+                        <MetricCardSkeleton />
+                    </>
+                ) : (
+                    <>
+                        <MetricCard title="Completed Challenges" amount={stats.completed} />
+                        <MetricCard title="Open Challenges" amount={stats.open} />
+                        <MetricCard title="Ongoing Challenges" amount={stats.ongoing} />
+                    </>
+                )}
             </div>
             <div>
                 <div className='w-full flex justify-between items-center text-sm mb-4'>

@@ -4,24 +4,35 @@ import Modal from '../_components/Modal';
 import { FilterTab } from '@/components/Components';
 import challengeData from "@/data/challengeData.json";
 import ChallengeCard from '@/components/ChallengeCard';
-import { getByCreatorId, getChallenges } from '@/app/actions/challenges';
+import { getAdminStats, getByCreatorId, getChallenges } from '@/app/actions/challenges';
 import { Challenge } from '@/app/types/challenge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import ChallengeCardSkeleton from '@/components/skeletons/ChallengeCardSkeleton';
+import { adminStats } from '@/app/types/stats';
+import { FilterTabSkeleton } from '@/components/skeletons/FilterTabSkeleton';
 
 const Page = () => {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [stats, setStats] = useState<adminStats>({
+    total: 0,
+    open: 0,
+    ongoing: 0,
+    completed: 0,
+    participants: 0
+  });
 
   useEffect(() => {
     const fetchChallenge = async () => {
       try {
         const challengeData = await getByCreatorId(6, localStorage.getItem('_id'), localStorage.getItem('authToken'));
+        const adminStats = await getAdminStats(localStorage.getItem('_id'), localStorage.getItem('authToken'));
         console.log("Challenge data:", challengeData);
 
+        setStats(adminStats);
         if (challengeData && Object.keys(challengeData).length === 0) {
           // If the fetched data is an empty object, treat it as a 404
           setChallenges([]);
@@ -52,10 +63,21 @@ const Page = () => {
           </div>
           <div>
             <div className='flex flex-wrap items-center gap-4 pb-4 border-b border-gray-200'>
-              <FilterTab tab="all" label="All Challenges" count={10} />
-              <FilterTab tab="completed" label="Completed Challenges" count={10} />
-              <FilterTab tab="open" label="Open Challenges" count={10} />
-              <FilterTab tab="ongoing" label="Ongoing Challenges" count={10} />
+              {isLoading ? (
+                <>
+                  <FilterTabSkeleton />
+                  <FilterTabSkeleton />
+                  <FilterTabSkeleton />
+                  <FilterTabSkeleton />
+                </>
+              ) : (
+                <>
+                  <FilterTab tab="all" label="All Challenges" count={stats.total} />
+                  <FilterTab tab="completed" label="Completed Challenges" count={stats.completed} />
+                  <FilterTab tab="open" label="Open Challenges" count={stats.open} />
+                  <FilterTab tab="ongoing" label="Ongoing Challenges" count={stats.ongoing} />
+                </>
+              )}
               <Button type="submit" className="bg-primary text-xs text-white" asChild>
                 <Link href={"/admin/challenges/new"}>
                   <Plus />

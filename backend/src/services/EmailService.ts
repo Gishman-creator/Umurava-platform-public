@@ -33,7 +33,7 @@ class EmailService {
   ): Promise<void> {
     try {
       const frontendUrl =
-        process.env.NODE_ENV === "production"
+        process.env.PRODUCTION === "TRUE"
           ? "https://umurava-platform.vercel.app"
           : config.frontendUrl;
 

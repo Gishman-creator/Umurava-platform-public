@@ -6,16 +6,14 @@ import { usePathname } from 'next/navigation';
 import React from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from "@/lib/utils";
+import SearchBar from './SearchBar';
 
 function Nav() {
     const pathName = usePathname();
 
     return (
         <div className='bg-white flex justify-between items-center sticky top-0 py-3 px-4 sm:px-8 z-20'>
-            <div className="bg-gray-100 shadow-sm h-fit w-1/2 flex items-center p-1 pl-3 space-x-2 rounded-md">
-                <Search className='h-4 w-4 text-gray-400' />
-                <input className="bg-gray-100 h-6 w-full outline-none ring-0 focus:ring-0 focus:outline-none text-xs" type="text" placeholder="Search here" />
-            </div>
+            <SearchBar />
             <DropdownMenu>
                 <DropdownMenuTrigger>
                     <div className='flex items-center gap-2'>

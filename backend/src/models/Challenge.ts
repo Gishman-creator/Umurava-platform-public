@@ -93,60 +93,100 @@ const ChallengeSchema = new Schema({
     timestamps: true // This automatically adds createdAt and updatedAt
 });
 ChallengeSchema.index({ creator_id: 1 });
-ChallengeSchema.index({ Deadline: 1 });
-ChallengeSchema.index({ Money_Prize: -1 });
+ChallengeSchema.index({ deadline: 1 });
+ChallengeSchema.index({ prize: -1 });
 
 ChallengeSchema.statics = {
     async getChallengeStats() {
         try {
+            const currentDate = new Date();
+    
             const stats = await this.aggregate([
                 {
                     $group: {
-                        _id: '$status',
+                        _id: {
+                            status: "$status",
+                            isPastDeadline: { $lt: ["$deadline", currentDate] }
+                        },
                         count: { $sum: 1 }
                     }
                 }
             ]);
-
+    
             const result = {
                 total: 0,
                 open: 0,
                 ongoing: 0,
                 completed: 0
             };
-
-            stats.forEach(({ _id, count }: { _id: keyof typeof result, count: number }) => {
-                result[_id] = count;
+    
+            stats.forEach(({ _id, count }) => {
+                const { status, isPastDeadline } = _id;
+                if (isPastDeadline) {
+                    result.completed += count;
+                } else {
+                    if (status === "OPEN") {
+                        result.open += count;
+                        result.ongoing += count;
+                    }
+                }
                 result.total += count;
             });
-
+    
             return result;
         } catch (error) {
-            logger.error('Error getting challenge stats:', error);
+            logger.error("Error getting challenge stats:", error);
             throw error;
         }
     },
 
-    async getUserChallengeStats(userId: Types.ObjectId) {
+    async getUserChallengeStats(creator_id: Types.ObjectId) {
         try {
+            const currentDate = new Date();
+    
+            // Aggregation pipeline to fetch challenges by creator_id and categorize based on deadline and status
             const stats = await this.aggregate([
-                { $match: { creator_id: userId } },
+                { $match: { creator_id: creator_id } },
+                {
+                    $addFields: {
+                        isPastDeadline: { $lt: ["$deadline", currentDate] }
+                    }
+                },
                 {
                     $group: {
-                        _id: '$status',
+                        _id: {
+                            status: "$status",
+                            isPastDeadline: "$isPastDeadline"
+                        },
                         count: { $sum: 1 }
                     }
                 }
             ]);
-
-            return {
-                total: stats.reduce((acc, curr) => acc + curr.count, 0),
-                open: stats.find(s => s._id === ChallengeStatus.OPEN)?.count || 0,
-                ongoing: stats.find(s => s._id === ChallengeStatus.ONGOING)?.count || 0,
-                completed: stats.find(s => s._id === ChallengeStatus.COMPLETED)?.count || 0
+    
+            const result = {
+                total: 0,
+                open: 0,
+                ongoing: 0,
+                completed: 0,
+                participants: 0
             };
+    
+            stats.forEach(({ _id, count }) => {
+                const { status, isPastDeadline } = _id;
+                if (isPastDeadline) {
+                    result.completed += count;
+                } else {
+                    if (status === "OPEN") {
+                        result.open += count;
+                        result.ongoing += count;
+                    }
+                }
+                result.total += count;
+            });
+    
+            return result;
         } catch (error) {
-            logger.error('Error getting user challenge stats:', error);
+            console.error("Error getting user challenge stats:", error);
             throw error;
         }
     }

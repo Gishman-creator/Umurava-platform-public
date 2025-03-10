@@ -33,8 +33,8 @@ router.get('/stats', userController.getUserStats);
 
 // Admin only routes
 router.use(authorize('admin'));
+router.get('/search', userController.searchUsers);
 router.get('/', userController.getAll);
 router.delete('/:id', userController.delete);
-router.get('/search', userController.searchUsers);
 
 export default router;

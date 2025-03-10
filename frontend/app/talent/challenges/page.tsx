@@ -3,17 +3,28 @@ import { FilterTab } from '@/components/Components'
 import ChallengeCard from '@/components/ChallengeCard';
 import React, { useEffect, useState } from 'react'
 import { Challenge } from '@/app/types/challenge';
-import { getChallenges } from '@/app/actions/challenges';
+import { getChallenges, getChallengeStats } from '@/app/actions/challenges';
 import ChallengeCardSkeleton from '@/components/skeletons/ChallengeCardSkeleton';
+import { challengeStats } from '@/app/types/stats';
+import { FilterTabSkeleton } from '@/components/skeletons/FilterTabSkeleton';
 
 function page() {
     const [challenges, setChallenges] = useState<Challenge[]>([]);
+    const [stats, setStats] = useState<challengeStats>({
+        total: 0,
+        open: 0,
+        ongoing: 0,
+        completed: 0,
+    });
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchChallenges = async () => {
             try {
                 const data = await getChallenges(6);
+                const challengeStats: challengeStats = await getChallengeStats();
+                
+                setStats(challengeStats);
                 setChallenges(data);
             } catch (error) {
                 console.error("Failed to fetch challenges", error);
@@ -33,10 +44,21 @@ function page() {
             </div>
             <div>
                 <div className='flex flex-wrap items-center gap-4 pb-4 border-b border-gray-200'>
-                    <FilterTab tab="all" label="All Challenges" count={10} />
-                    <FilterTab tab="completed" label="Completed Challenges" count={10} />
-                    <FilterTab tab="open" label="Open Challenges" count={10} />
-                    <FilterTab tab="ongoing" label="Ongoing Challenges" count={10} />
+                    {isLoading ? (
+                        <>
+                        <FilterTabSkeleton />
+                        <FilterTabSkeleton />
+                        <FilterTabSkeleton />
+                        <FilterTabSkeleton />
+                        </>
+                    ) : (
+                        <>
+                        <FilterTab tab="all" label="All Challenges" count={stats.total} />
+                        <FilterTab tab="completed" label="Completed Challenges" count={stats.completed} />
+                        <FilterTab tab="open" label="Open Challenges" count={stats.open} />
+                        <FilterTab tab="ongoing" label="Ongoing Challenges" count={stats.ongoing} />
+                        </>
+                    )}
                 </div>
                 {isLoading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center gap-6 mt-4">

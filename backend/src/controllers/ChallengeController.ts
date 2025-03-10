@@ -81,17 +81,33 @@ export default class ChallengeController extends BaseController<IChallenge> {
     };
 
     searchChallenges = async (req: Request, res: Response): Promise<void> => {
+        logger.error("Received search request with query:");
         try {
-            const { query } = req.query;
+            const { query, creator_id } = req.query;
+    
             if (typeof query !== 'string') {
+                console.log("Invalid query parameter:", query);
                 res.status(400).json({ message: 'Invalid query parameter' });
                 return;
             }
-            const challenges = await this.challengeService.search(query);
+
+            // Ensure 'creator_id' is a string or null
+            let creatorId: string | null = null;
+            if (typeof creator_id === 'string') {
+                creatorId = creator_id;
+            } else if (Array.isArray(creator_id) && typeof creator_id[0] === 'string') {
+                // Handle case where 'creator_id' is an array
+                creatorId = creator_id[0];
+            }
+
+            console.log("creator id:", creatorId);
+    
+            const challenges = await this.challengeService.search(query, creatorId);
+    
             res.status(200).json(challenges);
         } catch (error) {
             logger.error('Error in searchChallenges:', error);
             res.status(500).json({ message: 'Internal server error' });
         }
-    };
+    };    
 }

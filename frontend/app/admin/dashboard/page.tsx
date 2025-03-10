@@ -5,21 +5,33 @@ import ChallengeCard from '@/components/ChallengeCard';
 import { Bell, ChevronRight, Eye, FileText, Users } from 'lucide-react'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import MetricCardContainer from '../_components/MetricCardContainer';
 import { Challenge } from '@/app/types/challenge';
-import { getByCreatorId, getChallenges } from '@/app/actions/challenges';
+import { getAdminStats, getByCreatorId, getChallenges } from '@/app/actions/challenges';
 import ChallengeCardSkeleton from '@/components/skeletons/ChallengeCardSkeleton';
+import { adminStats } from '@/app/types/stats';
+import { AdminMetricCardSkeleton } from '@/components/skeletons/AdminMetricCardSkeleton';
 
 function page() {
     const [challenges, setChallenges] = useState<Challenge[]>([]);
+    const [stats, setStats] = useState<adminStats>({
+        total: 0,
+        open: 0,
+        ongoing: 0,
+        completed: 0,
+        participants: 0
+    });
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchChallenge = async () => {
             try {
                 const challengeData = await getByCreatorId(3, localStorage.getItem('_id'), localStorage.getItem('authToken'));
+                const adminStats = await getAdminStats(localStorage.getItem('_id'), localStorage.getItem('authToken'));
+
+                console.log("Stats:", adminStats);
                 console.log("Challenge data:", challengeData);
 
+                setStats(adminStats);
                 if (challengeData && Object.keys(challengeData).length === 0) {
                     // If the fetched data is an empty object, treat it as a 404
                     setChallenges([]);
@@ -48,7 +60,25 @@ function page() {
                     <Eye className='text-white h-5 w-5' /> View Profile
                 </Button>
             </div>
-            <MetricCardContainer />
+            <div className='w-full grid grid-cols-6 gap-6'>
+                {isLoading ? (
+                    <>
+                        <AdminMetricCardSkeleton className='col-span-6 sm:col-span-3' />
+                        <AdminMetricCardSkeleton className='col-span-6 sm:col-span-3' />
+                        <AdminMetricCardSkeleton className='col-span-6 sm:col-span-3 lg:col-span-2' />
+                        <AdminMetricCardSkeleton className='col-span-6 sm:col-span-3 lg:col-span-2' />
+                        <AdminMetricCardSkeleton className='col-span-6 sm:col-span-6 lg:col-span-2' />
+                    </>
+                ) : (
+                    <>
+                        <AdminMetricCard className='col-span-6 sm:col-span-3' title="Total Challenges" amount={stats.total} rate={15} defaultTime='This Week' icon={FileText} />
+                        <AdminMetricCard className='col-span-6 sm:col-span-3' title="Total Participants" amount={stats.participants} rate={15} defaultTime='This Week' icon={Users} />
+                        <AdminMetricCard className='col-span-6 sm:col-span-3 lg:col-span-2' title="Completed Challenges" amount={stats.completed} rate={15} defaultTime='Last 30 Days' icon={FileText} />
+                        <AdminMetricCard className='col-span-6 sm:col-span-3 lg:col-span-2' title="Open Challenges" amount={stats.open} rate={15} defaultTime='Last 30 Days' icon={FileText} />
+                        <AdminMetricCard className='col-span-6 sm:col-span-6 lg:col-span-2' title="Ongoing Challenges" amount={stats.ongoing} rate={15} defaultTime='Last 30 Days' icon={FileText} />
+                    </>
+                )}
+            </div>
             <div>
                 <div className='w-full flex justify-between items-center text-sm mb-4'>
                     <p className='font-bold'>Recent Challenges</p>

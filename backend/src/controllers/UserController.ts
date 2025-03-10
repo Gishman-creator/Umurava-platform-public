@@ -29,6 +29,7 @@ import mongoose from "mongoose";
 import CloudStorageService from "../services/CloudStorageService";
 import { sign } from "jsonwebtoken";
 import crypto from 'crypto';
+import Challenge from "../models/Challenge";
 
 declare module "express" {
   interface Request {
@@ -148,35 +149,55 @@ export default class UserController extends BaseController<IUser> {
 
   getUserStats = async (req: Request, res: Response): Promise<void> => {
     try {
-      const user = (await User.findById(req.user?._id)
-        .populate("completedChallenges")
-        .populate("ongoingChallenges")
-        .populate("createdChallenges")) as IUser;
-
+      // Ensure the user is authenticated
+      if (!req.user?._id) {
+        throw new AuthenticationError("User not authenticated");
+      }
+  
+      // Retrieve the user from the database
+      const user = await User.findById(req.user._id);
       if (!user) {
         throw new AuthenticationError("User not found");
       }
-
+  
+      // Initialize stats counters
+      let total = 0;
+      let open = 0;
+      let ongoing = 0;
+      let completed = 0;
+      let participants = 0;
+  
+      // Fetch challenges created by the user
+      const challenges = await Challenge.find({ creator_id: user._id });
+  
+      // Get the current date for comparison
+      const currentDate = new Date();
+  
+      // Iterate through each challenge to update stats
+      challenges.forEach((challenge) => {
+        total++;
+        if (challenge.deadline) {
+          const deadlineDate = new Date(challenge.deadline);
+          if (deadlineDate < currentDate) {
+            completed++;
+          } else {
+            ongoing++;
+            open++;
+          }
+        }
+      });
+  
+      // Return the stats as a JSON response
       res.status(200).json({
-        success: true,
-        data: {
-          completedChallenges: {
-            count: user.getChallengeCount("completed"),
-            challenges: user.completedChallenges,
-          },
-          ongoingChallenges: {
-            count: user.getChallengeCount("ongoing"),
-            challenges: user.ongoingChallenges,
-          },
-          createdChallenges: {
-            count: user.getChallengeCount("created"),
-            challenges: user.createdChallenges,
-          },
-        },
+        total,
+        open,
+        ongoing,
+        completed,
+        participants
       });
     } catch (error) {
       logger.error("Error getting user stats:", error);
-      throw error;
+      res.status(500).json({ message: 'Internal server error' });
     }
   };
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { BriefcaseBusiness, CalendarDays, DollarSign, Mail } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getChallenge } from '@/app/actions/challenges';
+import { deleteChallenge, getChallenge } from '@/app/actions/challenges';
 import { Challenge } from '@/app/types/challenge';
 import { useParams } from "next/navigation";
 import ChallengePageSkeleton from "@/components/skeletons/ChallengePageSkeleton";
@@ -64,6 +64,14 @@ function Page() {
         </a>
       </div>
     ); // In case the challenge ID does not exist
+  }
+
+  const handleDeleteClick = async (id: string) => {
+    try {
+      await deleteChallenge(id, localStorage.getItem('authToken'));
+    } catch (error) {
+      console.error("Error deleting challenge:", error);
+    }
   }
 
   return (
@@ -166,7 +174,15 @@ function Page() {
             </div>
 
             <div className='flex items-center gap-2 pt-8'>
-              <Button type="button" variant={'destructive'} className="bg-red-600 text-xs text-white w-full">Delete</Button>
+            <Button
+                type="button"
+                variant={'destructive'}
+                className="bg-red-600 text-xs text-white w-full"
+                onClick={() => handleDeleteClick(challenge._id)}
+                asChild
+              >
+                <Link href={`/admin/challenges`}>Delete</Link>
+              </Button>
               <Button type="submit" className="bg-primary text-xs text-white w-full">
                 <Link href={`/admin/challenges/${challenge._id}/edit`}>Edit</Link>
               </Button>

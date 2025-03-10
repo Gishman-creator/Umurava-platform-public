@@ -73,18 +73,27 @@ export default class ChallengeService extends BaseService<IChallenge> {
      * @param {string} query - Search query
      * @returns {Promise<IChallenge[]>} Matching challenges
      */
-    async search(query: string): Promise<IChallenge[]> {
+    async search(query: string, creator_id?: string | null): Promise<IChallenge[]> {
         try {
-            return await Challenge.find({
-                $or: [
-                    { Title: { $regex: query, $options: 'i' } },
-                    { Brief: { $regex: query, $options: 'i' } },
-                    { Project_Discription: { $regex: query, $options: 'i' } }
-                ]
-            });
+            // Build the search criteria
+            const searchCriteria: any = {
+                title: { $regex: query, $options: 'i' } // Case-insensitive search on title
+            };
+    
+            // If creator_id is provided and is not 'null', add it to the search criteria
+            if (creator_id && creator_id !== 'null') {
+                searchCriteria.creator_id = creator_id;
+            }
+    
+            // Execute the query with the search criteria, selecting specific fields and limiting to 5 results
+            const results = await Challenge.find(searchCriteria)
+                .select('_id title deadline imageUrl') // Select specific fields
+                .limit(5); // Limit to 5 results
+    
+            return results;
         } catch (error) {
             logger.error('Error searching challenges:', error);
             throw error;
         }
-    }
+    }    
 }
